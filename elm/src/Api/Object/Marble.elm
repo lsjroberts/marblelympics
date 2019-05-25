@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Api.Object.Marble exposing (events, id, name, team)
+module Api.Object.Marble exposing (competitions, id, name, team)
 
 import Api.InputObject
 import Api.Interface
@@ -19,9 +19,9 @@ import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode
 
 
-events : SelectionSet decodesTo Api.Object.Competitor -> SelectionSet (Maybe (List decodesTo)) Api.Object.Marble
-events object_ =
-    Object.selectionForCompositeField "events" [] object_ (identity >> Decode.list >> Decode.nullable)
+competitions : SelectionSet decodesTo Api.Object.Competitor -> SelectionSet (Maybe (List decodesTo)) Api.Object.Marble
+competitions object_ =
+    Object.selectionForCompositeField "competitions" [] object_ (identity >> Decode.list >> Decode.nullable)
 
 
 id : SelectionSet Api.ScalarCodecs.Id Api.Object.Marble

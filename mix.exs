@@ -42,7 +42,8 @@ defmodule Marbles.Mixfile do
       {:absinthe, "~> 1.4"},
       {:absinthe_plug, "~> 1.4"},
       {:plug_cowboy, "~> 1.0"},
-      {:jason, "~> 1.0"}
+      {:jason, "~> 1.0"},
+      {:cors_plug, "~> 2.0"}
     ]
   end
 

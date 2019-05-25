@@ -6,6 +6,11 @@ defmodule MarblesWeb.MarblesResolver do
     {:ok, marbles}
   end
 
+  def list_marbles(_root, %{team: team}, _info) do
+    marbles = Marbles.list_marbles(%{team: team})
+    {:ok, marbles}
+  end
+
   def list_marbles(_root, _args, _info) do
     marbles = Marbles.list_marbles()
     {:ok, marbles}

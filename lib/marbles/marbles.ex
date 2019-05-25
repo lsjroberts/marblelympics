@@ -9,6 +9,11 @@ defmodule Marbles.Marbles do
     |> Repo.all()
   end
 
+  def list_marbles(%{team: team_id}) do
+    from(m in Marble, where: m.team_id == ^team_id)
+    |> Repo.all()
+  end
+
   def list_marbles do
     Repo.all(Marble)
   end

@@ -39,14 +39,14 @@ occasion object_ =
     Object.selectionForCompositeField "occasion" [] object_ identity
 
 
-points : SelectionSet (Maybe Int) Api.Object.Competitor
+points : SelectionSet Int Api.Object.Competitor
 points =
-    Object.selectionForField "(Maybe Int)" "points" [] (Decode.int |> Decode.nullable)
+    Object.selectionForField "Int" "points" [] Decode.int
 
 
-score : SelectionSet (Maybe Int) Api.Object.Competitor
+score : SelectionSet Int Api.Object.Competitor
 score =
-    Object.selectionForField "(Maybe Int)" "score" [] (Decode.int |> Decode.nullable)
+    Object.selectionForField "Int" "score" [] Decode.int
 
 
 team : SelectionSet decodesTo Api.Object.Team -> SelectionSet decodesTo Api.Object.Competitor

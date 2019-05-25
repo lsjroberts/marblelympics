@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Api.Query exposing (CompetitorsOptionalArguments, OccasionOptionalArguments, OccasionRequiredArguments, TeamRequiredArguments, competitors, events, marbles, occasion, occasions, team, teams)
+module Api.Query exposing (CompetitorsOptionalArguments, MarbleRequiredArguments, MarblesOptionalArguments, OccasionOptionalArguments, OccasionRequiredArguments, TeamRequiredArguments, competitors, events, marble, marbles, occasion, occasions, team, teams)
 
 import Api.InputObject
 import Api.Interface
@@ -43,9 +43,30 @@ events object_ =
     Object.selectionForCompositeField "events" [] object_ (identity >> Decode.list)
 
 
-marbles : SelectionSet decodesTo Api.Object.Marble -> SelectionSet (List decodesTo) RootQuery
-marbles object_ =
-    Object.selectionForCompositeField "marbles" [] object_ (identity >> Decode.list)
+type alias MarbleRequiredArguments =
+    { id : Api.ScalarCodecs.Id }
+
+
+marble : MarbleRequiredArguments -> SelectionSet decodesTo Api.Object.Marble -> SelectionSet (Maybe decodesTo) RootQuery
+marble requiredArgs object_ =
+    Object.selectionForCompositeField "marble" [ Argument.required "id" requiredArgs.id (Api.ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecId) ] object_ (identity >> Decode.nullable)
+
+
+type alias MarblesOptionalArguments =
+    { team : OptionalArgument Int }
+
+
+marbles : (MarblesOptionalArguments -> MarblesOptionalArguments) -> SelectionSet decodesTo Api.Object.Marble -> SelectionSet (List decodesTo) RootQuery
+marbles fillInOptionals object_ =
+    let
+        filledInOptionals =
+            fillInOptionals { team = Absent }
+
+        optionalArgs =
+            [ Argument.optional "team" filledInOptionals.team Encode.int ]
+                |> List.filterMap identity
+    in
+    Object.selectionForCompositeField "marbles" optionalArgs object_ (identity >> Decode.list)
 
 
 type alias OccasionOptionalArguments =
@@ -69,9 +90,9 @@ occasion fillInOptionals requiredArgs object_ =
     Object.selectionForCompositeField "occasion" (optionalArgs ++ [ Argument.required "id" requiredArgs.id (Api.ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecId) ]) object_ (identity >> Decode.nullable)
 
 
-occasions : SelectionSet decodesTo Api.Object.Occasion -> SelectionSet (Maybe (List decodesTo)) RootQuery
+occasions : SelectionSet decodesTo Api.Object.Occasion -> SelectionSet (List decodesTo) RootQuery
 occasions object_ =
-    Object.selectionForCompositeField "occasions" [] object_ (identity >> Decode.list >> Decode.nullable)
+    Object.selectionForCompositeField "occasions" [] object_ (identity >> Decode.list)
 
 
 type alias TeamRequiredArguments =
