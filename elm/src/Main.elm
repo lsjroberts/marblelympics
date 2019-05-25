@@ -1,8 +1,14 @@
 module Main exposing (Model, Msg(..), init, main, update, view)
 
+import Api.Object.Team as Team
+import Api.Query as Query
+import Api.Scalar exposing (Id(..))
 import Browser
 import Dict exposing (Dict)
 import Element exposing (..)
+import Graphql.Http
+import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
+import RemoteData exposing (RemoteData)
 
 
 
@@ -10,7 +16,11 @@ import Element exposing (..)
 
 
 type alias Model =
-    { route : Route, occasions : Dict String Occasion }
+    { route : Route, occasions : Dict String Occasion, response : RemoteData (Graphql.Http.Error Response) Response }
+
+
+type alias Response =
+    Maybe Team
 
 
 type Route
@@ -79,6 +89,7 @@ type alias Event =
 init : ( Model, Cmd Msg )
 init =
     ( { route = OccasionRoute "ML2019"
+      , response = RemoteData.Loading
       , occasions =
             Dict.fromList
                 [ ( "ML2019"
@@ -99,8 +110,23 @@ init =
                   )
                 ]
       }
-    , Cmd.none
+    , makeRequest
     )
+
+
+type alias Team =
+    { name : String }
+
+
+query id =
+    Query.team { id = id } <| SelectionSet.map Team Team.name
+
+
+makeRequest =
+    Id "1"
+        |> query
+        |> Graphql.Http.queryRequest "http://localhost:4000/"
+        |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
 
 
 
@@ -108,12 +134,14 @@ init =
 
 
 type Msg
-    = NoOp
+    = GotResponse (RemoteData (Graphql.Http.Error Response) Response)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        GotResponse response ->
+            ( { model | response = response }, Cmd.none )
 
 
 
@@ -121,7 +149,20 @@ update msg model =
 
 
 view model =
-    layout [] <| viewRoute model.route model
+    -- layout [] <| viewRoute model.route model
+    layout [] <|
+        case model.response of
+            RemoteData.Loading ->
+                text "loading"
+
+            RemoteData.Success team ->
+                text "yay"
+
+            RemoteData.Failure error ->
+                text "error"
+
+            _ ->
+                text "error"
 
 
 viewRoute route model =

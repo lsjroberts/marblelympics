@@ -8,6 +8,8 @@ defmodule MarblesWeb.Router do
   scope "/" do
     pipe_through(:api)
 
+    # options("/", MarblesWeb.Router, :nothing)
+
     forward("/graphiql", Absinthe.Plug.GraphiQL,
       schema: MarblesWeb.Schema,
       interface: :simple,
