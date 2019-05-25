@@ -5,7 +5,8 @@ defmodule Marbles.Events do
   alias Marbles.Event
 
   def list_events(occasion, _) do
-    from(e in Event, join: o in assoc(e, :occasions)) |> Repo.all()
+    from(e in Event, join: o in assoc(e, :occasions), where: o.id == ^occasion.id)
+    |> Repo.all()
   end
 
   def list_events do

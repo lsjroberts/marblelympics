@@ -5,6 +5,7 @@ defmodule Marbles.Marble do
   schema "marbles" do
     field(:name, :string)
     belongs_to(:team, Marbles.Team)
+    many_to_many(:competitors, Marbles.Competitor, join_through: "competitors")
 
     timestamps()
   end
