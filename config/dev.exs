@@ -41,6 +41,6 @@ config :marbles, Marbles.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: "postgres",
   password: "postgres",
-  database: "marbles_dev",
+  database: "marbles",
   hostname: "localhost",
   pool_size: 10
