@@ -1,5 +1,5 @@
 defmodule MarblesWeb.CompetitorsResolver do
-  alias Marbles.{Competitors, Marble, Occasion}
+  alias Marbles.{Competitors, Event, Marble, Occasion}
 
   def list_competitors(%Occasion{} = occasion, args, _info) do
     competitors = Competitors.list_competitors(occasion, args)
@@ -11,10 +11,15 @@ defmodule MarblesWeb.CompetitorsResolver do
     {:ok, competitors}
   end
 
-  def list_competitors(root, args, _info) do
-    competitors = Competitors.list_competitors(root, args)
+  def list_competitors(%Event{} = event, args, _info) do
+    competitors = Competitors.list_competitors(event, args)
     {:ok, competitors}
   end
+
+  # def list_competitors(root, args, _info) do
+  #   competitors = Competitors.list_competitors(root, args)
+  #   {:ok, competitors}
+  # end
 
   def list_competitors(_root, _args, _info) do
     competitors = Competitors.list_competitors()

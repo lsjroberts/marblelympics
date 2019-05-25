@@ -3,7 +3,7 @@ defmodule Marbles.Competitor do
   import Ecto.Changeset
 
   schema "competitors" do
-    field(:score, :integer)
+    field(:score, {:array, :integer})
     field(:points, :integer)
     belongs_to(:occasion, Marbles.Occasion)
     belongs_to(:event, Marbles.Event)

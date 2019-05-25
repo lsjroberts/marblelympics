@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Api.Query exposing (CompetitorsOptionalArguments, MarbleRequiredArguments, MarblesOptionalArguments, OccasionOptionalArguments, OccasionRequiredArguments, TeamRequiredArguments, competitors, events, marble, marbles, occasion, occasions, team, teams)
+module Api.Query exposing (CompetitorsOptionalArguments, EventsOptionalArguments, MarbleRequiredArguments, MarblesOptionalArguments, OccasionOptionalArguments, OccasionRequiredArguments, TeamRequiredArguments, competitors, events, marble, marbles, occasion, occasions, team, teams)
 
 import Api.InputObject
 import Api.Interface
@@ -22,6 +22,7 @@ import Json.Decode as Decode exposing (Decoder)
 type alias CompetitorsOptionalArguments =
     { event : OptionalArgument Api.ScalarCodecs.Id
     , marble : OptionalArgument Api.ScalarCodecs.Id
+    , occasion : OptionalArgument Api.ScalarCodecs.Id
     }
 
 
@@ -29,18 +30,30 @@ competitors : (CompetitorsOptionalArguments -> CompetitorsOptionalArguments) -> 
 competitors fillInOptionals object_ =
     let
         filledInOptionals =
-            fillInOptionals { event = Absent, marble = Absent }
+            fillInOptionals { event = Absent, marble = Absent, occasion = Absent }
 
         optionalArgs =
-            [ Argument.optional "event" filledInOptionals.event (Api.ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecId), Argument.optional "marble" filledInOptionals.marble (Api.ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecId) ]
+            [ Argument.optional "event" filledInOptionals.event (Api.ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecId), Argument.optional "marble" filledInOptionals.marble (Api.ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecId), Argument.optional "occasion" filledInOptionals.occasion (Api.ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecId) ]
                 |> List.filterMap identity
     in
     Object.selectionForCompositeField "competitors" optionalArgs object_ (identity >> Decode.list)
 
 
-events : SelectionSet decodesTo Api.Object.Event -> SelectionSet (List decodesTo) RootQuery
-events object_ =
-    Object.selectionForCompositeField "events" [] object_ (identity >> Decode.list)
+type alias EventsOptionalArguments =
+    { occasion : OptionalArgument Api.ScalarCodecs.Id }
+
+
+events : (EventsOptionalArguments -> EventsOptionalArguments) -> SelectionSet decodesTo Api.Object.Event -> SelectionSet (List decodesTo) RootQuery
+events fillInOptionals object_ =
+    let
+        filledInOptionals =
+            fillInOptionals { occasion = Absent }
+
+        optionalArgs =
+            [ Argument.optional "occasion" filledInOptionals.occasion (Api.ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecId) ]
+                |> List.filterMap identity
+    in
+    Object.selectionForCompositeField "events" optionalArgs object_ (identity >> Decode.list)
 
 
 type alias MarbleRequiredArguments =

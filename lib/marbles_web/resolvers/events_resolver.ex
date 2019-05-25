@@ -6,6 +6,11 @@ defmodule MarblesWeb.EventsResolver do
     {:ok, events}
   end
 
+  # def list_events(_root, args, _info) do
+  #   events = Events.list_events(args)
+  #   {:ok, events}
+  # end
+
   def list_events(_root, _args, _info) do
     events = Events.list_events()
     {:ok, events}

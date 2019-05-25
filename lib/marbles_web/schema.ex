@@ -31,6 +31,10 @@ defmodule MarblesWeb.Schema do
     field :occasions, list_of(non_null(:occasion)) do
       resolve(&OccasionsResolver.list_occasions/3)
     end
+
+    field :competitors, list_of(non_null(:competitor)) do
+      resolve(&CompetitorsResolver.list_competitors/3)
+    end
   end
 
   object :team do
@@ -57,22 +61,26 @@ defmodule MarblesWeb.Schema do
 
   object :competitor do
     field(:id, non_null(:id))
-    field(:score, non_null(:integer))
+    field(:score, non_null(list_of(non_null(:integer))))
     field(:points, non_null(:integer))
+    field(:event_id, non_null(:id))
+    field(:marble_id, non_null(:id))
+    field(:occasion_id, non_null(:id))
+    field(:team_id, non_null(:id))
 
-    field :event, non_null(:event) do
+    field :event, :event do
       resolve(&EventsResolver.get_event/3)
     end
 
-    field :marble, non_null(:marble) do
+    field :marble, :marble do
       resolve(&MarblesResolver.get_marble/3)
     end
 
-    field :occasion, non_null(:occasion) do
+    field :occasion, :occasion do
       resolve(&OccasionsResolver.get_occasion/3)
     end
 
-    field :team, non_null(:team) do
+    field :team, :team do
       resolve(&TeamsResolver.get_team/3)
     end
   end
@@ -89,6 +97,7 @@ defmodule MarblesWeb.Schema do
     end
 
     field(:events, non_null(list_of(non_null(:event)))) do
+      arg(:occasion, :id)
       resolve(&EventsResolver.list_events/3)
     end
 
@@ -114,6 +123,7 @@ defmodule MarblesWeb.Schema do
     field(:competitors, non_null(list_of(non_null(:competitor)))) do
       arg(:event, :id)
       arg(:marble, :id)
+      arg(:occasion, :id)
       resolve(&CompetitorsResolver.list_competitors/3)
     end
   end

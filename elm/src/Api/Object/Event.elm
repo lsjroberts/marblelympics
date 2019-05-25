@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Api.Object.Event exposing (id, name, occasions)
+module Api.Object.Event exposing (competitors, id, name, occasions)
 
 import Api.InputObject
 import Api.Interface
@@ -17,6 +17,11 @@ import Graphql.Operation exposing (RootMutation, RootQuery, RootSubscription)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode
+
+
+competitors : SelectionSet decodesTo Api.Object.Competitor -> SelectionSet (Maybe (List decodesTo)) Api.Object.Event
+competitors object_ =
+    Object.selectionForCompositeField "competitors" [] object_ (identity >> Decode.list >> Decode.nullable)
 
 
 id : SelectionSet Api.ScalarCodecs.Id Api.Object.Event

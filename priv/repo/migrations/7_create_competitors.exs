@@ -7,7 +7,7 @@ defmodule Marbles.Repo.Migrations.CreateCompetitors do
       add(:event_id, references(:events, on_delete: :delete_all), primary_key: true)
       add(:team_id, references(:teams, on_delete: :delete_all), primary_key: true)
       add(:marble_id, references(:marbles, on_delete: :delete_all), primary_key: true)
-      add(:score, :integer)
+      add(:score, {:array, :integer})
       add(:points, :integer)
 
       timestamps()

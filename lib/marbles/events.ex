@@ -9,6 +9,11 @@ defmodule Marbles.Events do
     |> Repo.all()
   end
 
+  # def list_events(%{occasion: occasion_id}) do
+  #   from(e in Event, join: o in assoc(e, :occasions), where: o.id == ^occasion_id)
+  #   |> Repo.all()
+  # end
+
   def list_events do
     Repo.all(Event)
   end

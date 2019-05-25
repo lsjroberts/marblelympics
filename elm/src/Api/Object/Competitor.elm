@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Api.Object.Competitor exposing (event, id, marble, occasion, points, score, team)
+module Api.Object.Competitor exposing (event, eventId, id, marble, marbleId, occasion, occasionId, points, score, team, teamId)
 
 import Api.InputObject
 import Api.Interface
@@ -19,9 +19,14 @@ import Graphql.SelectionSet exposing (SelectionSet)
 import Json.Decode as Decode
 
 
-event : SelectionSet decodesTo Api.Object.Event -> SelectionSet decodesTo Api.Object.Competitor
+event : SelectionSet decodesTo Api.Object.Event -> SelectionSet (Maybe decodesTo) Api.Object.Competitor
 event object_ =
-    Object.selectionForCompositeField "event" [] object_ identity
+    Object.selectionForCompositeField "event" [] object_ (identity >> Decode.nullable)
+
+
+eventId : SelectionSet Api.ScalarCodecs.Id Api.Object.Competitor
+eventId =
+    Object.selectionForField "ScalarCodecs.Id" "eventId" [] (Api.ScalarCodecs.codecs |> Api.Scalar.unwrapCodecs |> .codecId |> .decoder)
 
 
 id : SelectionSet Api.ScalarCodecs.Id Api.Object.Competitor
@@ -29,14 +34,24 @@ id =
     Object.selectionForField "ScalarCodecs.Id" "id" [] (Api.ScalarCodecs.codecs |> Api.Scalar.unwrapCodecs |> .codecId |> .decoder)
 
 
-marble : SelectionSet decodesTo Api.Object.Marble -> SelectionSet decodesTo Api.Object.Competitor
+marble : SelectionSet decodesTo Api.Object.Marble -> SelectionSet (Maybe decodesTo) Api.Object.Competitor
 marble object_ =
-    Object.selectionForCompositeField "marble" [] object_ identity
+    Object.selectionForCompositeField "marble" [] object_ (identity >> Decode.nullable)
 
 
-occasion : SelectionSet decodesTo Api.Object.Occasion -> SelectionSet decodesTo Api.Object.Competitor
+marbleId : SelectionSet Api.ScalarCodecs.Id Api.Object.Competitor
+marbleId =
+    Object.selectionForField "ScalarCodecs.Id" "marbleId" [] (Api.ScalarCodecs.codecs |> Api.Scalar.unwrapCodecs |> .codecId |> .decoder)
+
+
+occasion : SelectionSet decodesTo Api.Object.Occasion -> SelectionSet (Maybe decodesTo) Api.Object.Competitor
 occasion object_ =
-    Object.selectionForCompositeField "occasion" [] object_ identity
+    Object.selectionForCompositeField "occasion" [] object_ (identity >> Decode.nullable)
+
+
+occasionId : SelectionSet Api.ScalarCodecs.Id Api.Object.Competitor
+occasionId =
+    Object.selectionForField "ScalarCodecs.Id" "occasionId" [] (Api.ScalarCodecs.codecs |> Api.Scalar.unwrapCodecs |> .codecId |> .decoder)
 
 
 points : SelectionSet Int Api.Object.Competitor
@@ -44,11 +59,16 @@ points =
     Object.selectionForField "Int" "points" [] Decode.int
 
 
-score : SelectionSet Int Api.Object.Competitor
+score : SelectionSet (List Int) Api.Object.Competitor
 score =
-    Object.selectionForField "Int" "score" [] Decode.int
+    Object.selectionForField "(List Int)" "score" [] (Decode.int |> Decode.list)
 
 
-team : SelectionSet decodesTo Api.Object.Team -> SelectionSet decodesTo Api.Object.Competitor
+team : SelectionSet decodesTo Api.Object.Team -> SelectionSet (Maybe decodesTo) Api.Object.Competitor
 team object_ =
-    Object.selectionForCompositeField "team" [] object_ identity
+    Object.selectionForCompositeField "team" [] object_ (identity >> Decode.nullable)
+
+
+teamId : SelectionSet Api.ScalarCodecs.Id Api.Object.Competitor
+teamId =
+    Object.selectionForField "ScalarCodecs.Id" "teamId" [] (Api.ScalarCodecs.codecs |> Api.Scalar.unwrapCodecs |> .codecId |> .decoder)
