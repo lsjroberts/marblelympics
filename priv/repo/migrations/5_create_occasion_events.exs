@@ -5,6 +5,7 @@ defmodule Marbles.Repo.Migrations.CreateOccasionEvents do
     create table(:occasion_events) do
       add(:occasion_id, references(:occasions, on_delete: :delete_all), primary_key: true)
       add(:event_id, references(:events, on_delete: :delete_all), primary_key: true)
+      add(:date, :date)
     end
 
     create(index(:occasion_events, [:occasion_id]))

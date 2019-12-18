@@ -2,6 +2,7 @@ alias Marbles.Competitor
 alias Marbles.Event
 alias Marbles.Marble
 alias Marbles.Occasion
+alias Marbles.OccasionEvent
 alias Marbles.Team
 alias Marbles.Repo
 
@@ -176,6 +177,68 @@ C.comp(
   ]
 )
 
+C.comp(
+  %{
+    occasion: ml2019,
+    event: balancing
+  },
+  [
+    %{team: hazers, marble: foggy, score: [71, 107, 130, 130, 438]},
+    %{team: thunderbolts, marble: shock, score: [62, 101, 115, 130, 408]},
+    %{team: crazy_cats_eyes, marble: yellow_eye, score: [36, 55, 130, 130, 351]},
+    %{team: green_ducks, marble: mallard, score: [12, 32, 130, 130, 304]},
+    %{team: team_galactic, marble: cosmo, score: [48, 58, 64, 130, 300]},
+    %{team: mellow_yellow, marble: yellah, score: [31, 41, 71, 130, 273]},
+    %{team: savage_speeders, marble: speedy, score: [37, 48, 53, 130, 268]},
+    %{team: oceanics, marble: aqua, score: [17, 52, 80, 85, 234]},
+    %{team: orangers, marble: clementin, score: [34, 47, 52, 93, 226]},
+    %{team: midnight_wisps, marble: wespy, score: [16, 36, 38, 130, 220]},
+    %{team: indigo_stars, marble: indie, score: [22, 26, 37, 130, 215]},
+    %{team: balls_of_chaos, marble: anarchy, score: [44, 49, 53, 64, 210]},
+    %{team: pinkies, marble: pinky_panther, score: [18, 31, 48, 103, 200]},
+    %{team: raspberry_racers, marble: razzy, score: [37, 42, 50, 70, 199]},
+    %{team: chocolatiers, marble: bonbon, score: [19, 30, 32, 91, 172]},
+    %{team: jungle_jumpers, marble: leap, score: [17, 34, 49, 54, 154]}
+  ]
+)
+
+%OccasionEvent{occasion: ml2019, date: ~D[2019-04-19], event: underwater_race} |> Repo.insert!()
+%OccasionEvent{occasion: ml2019, date: ~D[2019-04-23], event: funnel_race} |> Repo.insert!()
+%OccasionEvent{occasion: ml2019, date: ~D[2019-04-26], event: balancing} |> Repo.insert!()
+%OccasionEvent{occasion: ml2019, date: ~D[2019-04-30], event: gravitrax_slalom} |> Repo.insert!()
+%OccasionEvent{occasion: ml2019, date: ~D[2019-05-03], event: five_meter_sprint} |> Repo.insert!()
+%OccasionEvent{occasion: ml2019, date: ~D[2019-05-07], event: relay_race} |> Repo.insert!()
+%OccasionEvent{occasion: ml2019, date: ~D[2019-05-10], event: block_pushing} |> Repo.insert!()
+%OccasionEvent{occasion: ml2019, date: ~D[2019-05-07], event: summer_biathlon} |> Repo.insert!()
+%OccasionEvent{occasion: ml2019, date: ~D[2019-05-17], event: hurdles_race} |> Repo.insert!()
+%OccasionEvent{occasion: ml2019, date: ~D[2019-05-21], event: hubelino_maze} |> Repo.insert!()
+%OccasionEvent{occasion: ml2019, date: ~D[2019-05-24], event: dirt_race} |> Repo.insert!()
+# %OccasionEvent{occasion: ml2019, date: ~D[2019-01-01], event: rafting} |> Repo.insert!()
+# %OccasionEvent{occasion: ml2019, date: ~D[2019-01-01], event: elimination_race} |> Repo.insert!()
+
+ml2019_pre = Repo.preload(ml2019, [:teams])
+
+Ecto.Changeset.change(ml2019_pre)
+|> Ecto.Changeset.put_assoc(:teams, [
+  balls_of_chaos,
+  chocolatiers,
+  crazy_cats_eyes,
+  green_ducks,
+  hazers,
+  indigo_stars,
+  jungle_jumpers,
+  mellow_yellow,
+  midnight_wisps,
+  oceanics,
+  orangers,
+  pinkies,
+  raspberry_racers,
+  savage_speeders,
+  team_galactic,
+  thunderbolts
+])
+|> Repo.update!()
+
 # --- CHANGESETS ---
 
 Ecto.Changeset.change(Repo.preload(ml2017, [:events]))
@@ -211,34 +274,3 @@ Ecto.Changeset.change(Repo.preload(ml2017, [:events]))
 #   sand_mogul_race,
 # ])
 # |> Repo.update!()
-
-ml2019_pre = Repo.preload(ml2019, [:events, :teams])
-
-Ecto.Changeset.change(ml2019_pre)
-|> Ecto.Changeset.put_assoc(:events, [
-  underwater_race,
-  funnel_race,
-  balancing,
-  gravitrax_slalom,
-  five_meter_sprint,
-  relay_race,
-  block_pushing,
-  summer_biathlon,
-  hurdles_race,
-  hubelino_maze,
-  dirt_race,
-  rafting,
-  elimination_race
-])
-|> Repo.update!()
-
-Ecto.Changeset.change(ml2019_pre)
-|> Ecto.Changeset.put_assoc(:teams, [
-  balls_of_chaos,
-  chocolatiers,
-  crazy_cats_eyes,
-  green_ducks,
-  hazers,
-  savage_speeders
-])
-|> Repo.update!()

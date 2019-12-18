@@ -5,6 +5,11 @@ import Api.Object.Competitor as Competitor
 import Api.Object.Event as Event
 import Api.Object.Marble as Marble
 import Api.Object.Occasion as Occasion
+import Api.Object.OccasionEvent as OccasionEvent
+import Api.Object.OccasionResult as OccasionResult
+import Api.Object.OccasionResults as OccasionResults
+import Api.Object.OccasionResultsTeam as OccasionResultsTeam
+import Api.Object.OccasionTeamResult as OccasionTeamResult
 import Api.Object.Team as Team
 import Api.Query as Query
 import Api.Scalar exposing (Id(..))
@@ -12,6 +17,8 @@ import Browser
 import Browser.Navigation as Nav
 import Dict exposing (Dict)
 import Element exposing (..)
+import Element.Background as Background
+import Element.Border as Border
 import Graphql.Http
 import Graphql.Operation exposing (RootQuery)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
@@ -21,6 +28,7 @@ import Maybe.Extra as Maybe
 import RemoteData exposing (RemoteData)
 import Url
 import Url.Parser as Parser exposing ((</>), Parser, custom, fragment, map, oneOf, s, top)
+import Visualisations
 
 
 
@@ -52,6 +60,8 @@ type alias Model =
     , team : RemoteData (Graphql.Http.RawError () Http.Error) (Maybe Team)
     , marbles : RemoteData (Graphql.Http.RawError () Http.Error) (List Marble)
     , marble : RemoteData (Graphql.Http.RawError () Http.Error) (Maybe Marble)
+    , occasionResults : RemoteData (Graphql.Http.RawError () Http.Error) (List OccasionResults)
+    , occasionResultsByTeam : RemoteData (Graphql.Http.RawError () Http.Error) (List OccasionResultsByTeam)
     }
 
 
@@ -69,6 +79,7 @@ type alias Occasion =
     , events : Maybe (List Event)
     , teams : Maybe (List Team)
     , competitors : Maybe (List Competitor)
+    , occasionEvents : Maybe (List OccasionEvent)
     }
 
 
@@ -102,10 +113,46 @@ type alias Event =
     }
 
 
+type alias OccasionEvent =
+    { eventId : Id
+    , date : String
+    }
+
+
+type alias OccasionResults =
+    { occasionEvent : OccasionEvent
+    , event : Event
+    , results : List OccasionResult
+    }
+
+
+type alias OccasionResult =
+    { team : Team
+    , score : List Int
+    , points : Int
+    }
+
+
+type alias OccasionResultsByTeam =
+    { team : Team
+    , results : List OccasionTeamResult
+    }
+
+
+type alias OccasionTeamResult =
+    { event : Event
+    , occasionEvent : OccasionEvent
+    , rank : Int
+    , points : Int
+    , cumulativePoints : Int
+    }
+
+
 queryOccasions : SelectionSet (List Occasion) RootQuery
 queryOccasions =
     Query.occasions
         (occasionSelection
+            |> hardcoded Nothing
             |> hardcoded Nothing
             |> hardcoded Nothing
             |> hardcoded Nothing
@@ -120,6 +167,7 @@ queryOccasion id =
             |> with (Occasion.events eventSelection)
             |> with (Occasion.teams (teamSelection |> hardcoded Nothing))
             |> with (Occasion.competitors competitorSelection)
+            |> with (Occasion.occasionEvents occasionEventSelection)
         )
 
 
@@ -157,6 +205,16 @@ queryMarbleWithCompetitions id =
         (marbleSelection |> with (Marble.competitions competitorSelection))
 
 
+queryOccasionResults : Id -> SelectionSet (List OccasionResults) RootQuery
+queryOccasionResults id =
+    Query.occasionResults { occasion = id } occasionResultsSelection
+
+
+queryOccasionResultsByTeam : Id -> SelectionSet (List OccasionResultsByTeam) RootQuery
+queryOccasionResultsByTeam id =
+    Query.occasionResultsByTeam { occasion = id } occasionResultsByTeamSelection
+
+
 occasionSelection =
     SelectionSet.succeed Occasion
         |> with Occasion.id
@@ -191,6 +249,41 @@ competitorSelection =
         |> with Competitor.teamId
 
 
+occasionEventSelection =
+    SelectionSet.succeed OccasionEvent
+        |> with OccasionEvent.eventId
+        |> with OccasionEvent.date
+
+
+occasionResultsSelection =
+    SelectionSet.succeed OccasionResults
+        |> with (OccasionResults.occasionEvent occasionEventSelection)
+        |> with (OccasionResults.event eventSelection)
+        |> with (OccasionResults.results occasionResultSelection)
+
+
+occasionResultSelection =
+    SelectionSet.succeed OccasionResult
+        |> with (OccasionResult.team (teamSelection |> hardcoded Nothing))
+        |> with OccasionResult.score
+        |> with OccasionResult.points
+
+
+occasionResultsByTeamSelection =
+    SelectionSet.succeed OccasionResultsByTeam
+        |> with (OccasionResultsTeam.team (teamSelection |> hardcoded Nothing))
+        |> with (OccasionResultsTeam.results occasionTeamResultSelection)
+
+
+occasionTeamResultSelection =
+    SelectionSet.succeed OccasionTeamResult
+        |> with (OccasionTeamResult.event eventSelection)
+        |> with (OccasionTeamResult.occasionEvent occasionEventSelection)
+        |> with OccasionTeamResult.rank
+        |> with OccasionTeamResult.points
+        |> with OccasionTeamResult.cumulativePoints
+
+
 query : SelectionSet decodeTo RootQuery -> (RemoteData (Graphql.Http.RawError () Http.Error) decodeTo -> Msg) -> Cmd Msg
 query queryConstructor msg =
     queryConstructor
@@ -214,6 +307,8 @@ init url key =
         , team = RemoteData.NotAsked
         , marbles = RemoteData.NotAsked
         , marble = RemoteData.NotAsked
+        , occasionResults = RemoteData.NotAsked
+        , occasionResultsByTeam = RemoteData.NotAsked
         }
 
 
@@ -230,6 +325,8 @@ type Msg
     | GotTeam (RemoteData (Graphql.Http.RawError () Http.Error) (Maybe Team))
     | GotMarbles (RemoteData (Graphql.Http.RawError () Http.Error) (List Marble))
     | GotMarble (RemoteData (Graphql.Http.RawError () Http.Error) (Maybe Marble))
+    | GotOccasionResults (RemoteData (Graphql.Http.RawError () Http.Error) (List OccasionResults))
+    | GotOccasionResultsByTeam (RemoteData (Graphql.Http.RawError () Http.Error) (List OccasionResultsByTeam))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -252,6 +349,12 @@ update msg model =
 
         GotMarble marble ->
             ( { model | marble = marble }, Cmd.none )
+
+        GotOccasionResults occasionResults ->
+            ( { model | occasionResults = occasionResults }, Cmd.none )
+
+        GotOccasionResultsByTeam occasionResultsByTeam ->
+            ( { model | occasionResultsByTeam = occasionResultsByTeam }, Cmd.none )
 
         LinkClicked urlRequest ->
             case urlRequest of
@@ -289,7 +392,7 @@ view model =
 
 
 viewContainer page =
-    { title = Maybe.unwrap "MarbleLympics" (\t -> t ++ " - " ++ "MarbleLympics") page.title
+    { title = Maybe.unwrap "MarbleLympics Stats" (\t -> t ++ " - " ++ "MarbleLympics Stats") page.title
     , body =
         [ layout [] <| page.child ]
     }
@@ -313,6 +416,7 @@ viewHome model =
         )
 
 
+viewOccasion : Model -> Element Msg
 viewOccasion model =
     let
         success mo =
@@ -321,121 +425,11 @@ viewOccasion model =
         occasion o =
             column [ spacing 40 ]
                 [ text o.name
-                , Maybe.unwrap (text "no events") (events o.competitors) o.events
+                , viewResponse model.occasionResultsByTeam Visualisations.occasionResultsByTeam
+
+                -- , Maybe.unwrap (text "no teams") teams o.teams
+                , viewResponse model.occasionResults viewOccasionTables
                 ]
-
-        events cs es =
-            column [ spacing 20 ] (List.map (event cs) es)
-
-        team t =
-            row [ spacing 10 ] [ text t.name ]
-
-        event cs e =
-            column [ spacing 10 ]
-                [ text e.name
-                , Maybe.unwrap (text "no competitors") (competitors e) cs
-                ]
-
-        competitors e cs =
-            viewResponse model.marbles (eventTable e cs)
-
-        eventTable e cs ms =
-            let
-                ecs =
-                    cs
-                        |> List.filter (\c -> c.eventId == e.id)
-
-                -- marbleIds =
-                --     ecs |> List.map (\c -> c.marbleId)
-                data =
-                    List.map
-                        (\c ->
-                            ( ms
-                                |> List.filter (\m -> m.id == c.marbleId)
-                                |> List.head
-                                |> Maybe.unwrap "?" .name
-                            , c
-                            )
-                        )
-                        ecs
-                        |> List.sortBy (\( _, c ) -> 0 - c.points)
-                        |> List.indexedMap (\rank ( m, c ) -> ( m, c, rank + 1 ))
-            in
-            table []
-                { data = data
-                , columns =
-                    [ { header = text "Marble"
-                      , width = fill
-                      , view =
-                            \( name, c, _ ) ->
-                                link []
-                                    { url =
-                                        case c.marbleId of
-                                            Id marbleId ->
-                                                "/marble/" ++ marbleId
-                                    , label = text name
-                                    }
-                      }
-                    , { header = text "Rank"
-                      , width = fill
-                      , view = \( _, _, rank ) -> text (String.fromInt rank)
-                      }
-                    , { header = text "Heat One"
-                      , width = fill
-                      , view =
-                            \( _, c, _ ) ->
-                                case c.score of
-                                    x :: xs ->
-                                        text (String.fromInt x)
-
-                                    _ ->
-                                        text ""
-                      }
-                    , { header = text "Heat Two"
-                      , width = fill
-                      , view =
-                            \( _, c, _ ) ->
-                                case c.score of
-                                    _ :: x :: xs ->
-                                        text (String.fromInt x)
-
-                                    _ ->
-                                        text ""
-                      }
-                    , { header = text "Heat Three"
-                      , width = fill
-                      , view =
-                            \( _, c, _ ) ->
-                                case c.score of
-                                    _ :: _ :: x :: xs ->
-                                        text (String.fromInt x)
-
-                                    _ ->
-                                        text ""
-                      }
-                    , { header = text "Results"
-                      , width = fill
-                      , view =
-                            \( _, c, _ ) ->
-                                case c.score of
-                                    _ :: _ :: x :: xs ->
-                                        text (String.fromInt x)
-
-                                    _ :: x :: xs ->
-                                        text (String.fromInt x)
-
-                                    x :: xs ->
-                                        text (String.fromInt x)
-
-                                    _ ->
-                                        text ""
-                      }
-                    , { header = text "Points"
-                      , width = fill
-                      , view = \( _, c, _ ) -> text (String.fromInt c.points)
-                      }
-                    ]
-                }
 
         -- marbles
         --     |> List.filter (\m -> m.id == c.marbleId)
@@ -450,6 +444,107 @@ viewOccasion model =
         --     |> column [ spacing 2 ]
     in
     viewResponse model.occasion success
+
+
+viewOccasionTables : List OccasionResults -> Element Msg
+viewOccasionTables values =
+    let
+        occasions =
+            List.map occasion values
+
+        occasion : OccasionResults -> ( Event, List ( Int, OccasionResult ) )
+        occasion o =
+            ( o.event, List.indexedMap (\i r -> ( i, r )) o.results )
+
+        columns =
+            -- [ { header = text "Rank"
+            --   , view = \{ rank } -> text (String.fromInt rank)
+            --   }
+            [ { header = text "Team"
+              , view = \{ team } -> text team.name
+              }
+
+            -- , { header = text "Marble"
+            --   , view =
+            --         \{ name, competitor } ->
+            --             link []
+            --                 { url =
+            --                     case competitor.marbleId of
+            --                         Id marbleId ->
+            --                             "/marble/" ++ marbleId
+            --                 , label = text name
+            --                 }
+            --   }
+            , { header = text "One"
+              , view =
+                    \{ score } ->
+                        case score of
+                            x :: xs ->
+                                text (String.fromInt x)
+
+                            _ ->
+                                text " "
+              }
+            , { header = text "Two"
+              , view =
+                    \{ score } ->
+                        case score of
+                            _ :: x :: xs ->
+                                text (String.fromInt x)
+
+                            _ ->
+                                text " "
+              }
+            , { header = text "Three"
+              , view =
+                    \{ score } ->
+                        case score of
+                            _ :: _ :: x :: xs ->
+                                text (String.fromInt x)
+
+                            _ ->
+                                text " "
+              }
+            , { header = text "Four"
+              , view =
+                    \{ score } ->
+                        case score of
+                            _ :: _ :: _ :: x :: xs ->
+                                text (String.fromInt x)
+
+                            _ ->
+                                text " "
+              }
+            , { header = text "Results"
+              , view =
+                    \{ score } ->
+                        -- case score of
+                        --     _ :: _ :: x :: xs ->
+                        --         text (String.fromInt x)
+                        --     _ :: x :: xs ->
+                        --         text (String.fromInt x)
+                        --     x :: xs ->
+                        --         text (String.fromInt x)
+                        --     _ ->
+                        text " "
+              }
+            , { header = text "Points"
+              , view = \{ points } -> text (String.fromInt points)
+              }
+            ]
+    in
+    occasions
+        |> List.map
+            (\( event, data ) ->
+                column []
+                    [ text event.name
+                    , styledTable []
+                        { data = data
+                        , columns = columns
+                        }
+                    ]
+            )
+        |> column [ spacing 100 ]
 
 
 viewTeam model =
@@ -505,6 +600,7 @@ viewMarble model =
         ]
 
 
+viewResponse : RemoteData e a -> (a -> Element Msg) -> Element Msg
 viewResponse response success =
     case response of
         RemoteData.Loading ->
@@ -518,6 +614,49 @@ viewResponse response success =
 
         RemoteData.NotAsked ->
             text "not asked"
+
+
+styledTable attrs { columns, data } =
+    table ([] ++ attrs)
+        { data = data
+        , columns =
+            columns
+                |> List.map
+                    (\c ->
+                        { header =
+                            el
+                                [ Background.color (rgb 0.92 0.92 0.92)
+                                , Border.color (rgb 0.8 0.8 0.8)
+                                , Border.widthEach { top = 0, right = 0, bottom = 1, left = 0 }
+                                , padding 10
+                                ]
+                                c.header
+                        , width = fill
+                        , view =
+                            \( i, d ) ->
+                                el
+                                    [ Background.color
+                                        (if i == 0 then
+                                            rgb (247 / 255) (223 / 255) (94 / 255)
+
+                                         else if i == 1 then
+                                            rgb (210 / 255) (202 / 255) (202 / 255)
+
+                                         else if i == 2 then
+                                            rgb (220 / 255) (186 / 255) (151 / 255)
+
+                                         else if modBy 2 i == 0 then
+                                            rgb 0.95 0.95 0.95
+
+                                         else
+                                            rgb 0.98 0.98 0.98
+                                        )
+                                    , padding 10
+                                    ]
+                                    (c.view d)
+                        }
+                    )
+        }
 
 
 
@@ -557,6 +696,8 @@ routeOccasion model occasion =
     , Cmd.batch
         [ query (queryOccasion (Id occasion)) GotOccasion
         , query queryMarbles GotMarbles
+        , query (queryOccasionResults (Id occasion)) GotOccasionResults
+        , query (queryOccasionResultsByTeam (Id occasion)) GotOccasionResultsByTeam
         ]
     )
 

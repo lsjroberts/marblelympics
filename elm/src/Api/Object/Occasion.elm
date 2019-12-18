@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Api.Object.Occasion exposing (competitors, events, id, name, teams)
+module Api.Object.Occasion exposing (competitors, events, id, name, occasionEvents, teams)
 
 import Api.InputObject
 import Api.Interface
@@ -37,6 +37,11 @@ id =
 name : SelectionSet String Api.Object.Occasion
 name =
     Object.selectionForField "String" "name" [] Decode.string
+
+
+occasionEvents : SelectionSet decodesTo Api.Object.OccasionEvent -> SelectionSet (Maybe (List decodesTo)) Api.Object.Occasion
+occasionEvents object_ =
+    Object.selectionForCompositeField "occasionEvents" [] object_ (identity >> Decode.list >> Decode.nullable)
 
 
 teams : SelectionSet decodesTo Api.Object.Team -> SelectionSet (Maybe (List decodesTo)) Api.Object.Occasion

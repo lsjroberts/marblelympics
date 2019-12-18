@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Api.Query exposing (CompetitorsOptionalArguments, EventsOptionalArguments, MarbleRequiredArguments, MarblesOptionalArguments, OccasionOptionalArguments, OccasionRequiredArguments, TeamRequiredArguments, competitors, events, marble, marbles, occasion, occasions, team, teams)
+module Api.Query exposing (CompetitorsOptionalArguments, EventsOptionalArguments, MarbleRequiredArguments, MarblesOptionalArguments, OccasionOptionalArguments, OccasionRequiredArguments, OccasionResultsByTeamRequiredArguments, OccasionResultsRequiredArguments, TeamRequiredArguments, competitors, events, marble, marbles, occasion, occasionResults, occasionResultsByTeam, occasions, team, teams)
 
 import Api.InputObject
 import Api.Interface
@@ -101,6 +101,24 @@ occasion fillInOptionals requiredArgs object_ =
                 |> List.filterMap identity
     in
     Object.selectionForCompositeField "occasion" (optionalArgs ++ [ Argument.required "id" requiredArgs.id (Api.ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecId) ]) object_ (identity >> Decode.nullable)
+
+
+type alias OccasionResultsRequiredArguments =
+    { occasion : Api.ScalarCodecs.Id }
+
+
+occasionResults : OccasionResultsRequiredArguments -> SelectionSet decodesTo Api.Object.OccasionResults -> SelectionSet (List decodesTo) RootQuery
+occasionResults requiredArgs object_ =
+    Object.selectionForCompositeField "occasionResults" [ Argument.required "occasion" requiredArgs.occasion (Api.ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecId) ] object_ (identity >> Decode.list)
+
+
+type alias OccasionResultsByTeamRequiredArguments =
+    { occasion : Api.ScalarCodecs.Id }
+
+
+occasionResultsByTeam : OccasionResultsByTeamRequiredArguments -> SelectionSet decodesTo Api.Object.OccasionResultsTeam -> SelectionSet (List decodesTo) RootQuery
+occasionResultsByTeam requiredArgs object_ =
+    Object.selectionForCompositeField "occasionResultsByTeam" [ Argument.required "occasion" requiredArgs.occasion (Api.ScalarCodecs.codecs |> Api.Scalar.unwrapEncoder .codecId) ] object_ (identity >> Decode.list)
 
 
 occasions : SelectionSet decodesTo Api.Object.Occasion -> SelectionSet (List decodesTo) RootQuery

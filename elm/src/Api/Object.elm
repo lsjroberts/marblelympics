@@ -2,7 +2,7 @@
 -- https://github.com/dillonkearns/elm-graphql
 
 
-module Api.Object exposing (Competitor(..), Event(..), Marble(..), Occasion(..), Team(..))
+module Api.Object exposing (Competitor(..), Event(..), Marble(..), Occasion(..), OccasionEvent(..), OccasionResult(..), OccasionResults(..), OccasionResultsTeam(..), OccasionTeamResult(..), Team(..))
 
 
 type Competitor
@@ -19,6 +19,26 @@ type Marble
 
 type Occasion
     = Occasion
+
+
+type OccasionEvent
+    = OccasionEvent
+
+
+type OccasionResult
+    = OccasionResult
+
+
+type OccasionResults
+    = OccasionResults
+
+
+type OccasionResultsTeam
+    = OccasionResultsTeam
+
+
+type OccasionTeamResult
+    = OccasionTeamResult
 
 
 type Team
